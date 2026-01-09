@@ -4,11 +4,24 @@ metadata:
   name: mysql-initdb
 data:
   init.sql: |
+    -- Create database
+    CREATE DATABASE IF NOT EXISTS auth;
+    USE auth;
+
+    -- Create user accessible from any pod
+    CREATE USER IF NOT EXISTS 'auth_user'@'%' IDENTIFIED BY 'auth_password';
+
+    -- Grant privileges
+    GRANT ALL PRIVILEGES ON auth.* TO 'auth_user'@'%';
+    FLUSH PRIVILEGES;
+
+    -- Create table
     CREATE TABLE IF NOT EXISTS users (
       id INT AUTO_INCREMENT PRIMARY KEY,
       email VARCHAR(255) UNIQUE NOT NULL,
       password VARCHAR(255) NOT NULL
     );
 
+    -- Seed user
     INSERT INTO users (email, password)
     VALUES ('test@example.com', 'password123');

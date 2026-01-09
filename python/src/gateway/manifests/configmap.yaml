@@ -4,3 +4,5 @@ metadata:
   name: gateway-configmap
 data:
   AUTH_SVC_ADDRESS: "auth:5000"
+  MONGO_VIDEO_URI: mongodb://mongo:27017/videos
+  MONGO_MP3_URI: mongodb://mongo:27017/mp3s

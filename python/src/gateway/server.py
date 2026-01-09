@@ -7,13 +7,11 @@ from storage import util
 from bson.objectid import ObjectId
 
 server = Flask(__name__)
-mongo_video = PyMongo(server, uri="mongodb://host.minikube.internal:27017/videos")
-mongo_mp3 = PyMongo(server, uri="mongodb://host.minikube.internal:27017/mp3s")
+mongo_video = PyMongo(server, uri=os.environ["MONGO_VIDEO_URI"] )
+mongo_mp3 = PyMongo(server, uri=os.environ["MONGO_MP3_URI"] )
 fs_videos = gridfs.GridFS(mongo_video.db)
 fs_mp3s = gridfs.GridFS(mongo_mp3.db)
 
-connection = pika.BlockingConnection(pika.ConnectionParameters("rabbitmq"))
-channel = connection.channel()
 
 @server.route("/healthcheck", methods=["GET"])
 def healthcheck():
@@ -22,6 +20,7 @@ def healthcheck():
 @server.route("/login", methods=["POST"])
 def login():
     token, err = access.login(request)
+    print("Acess is valid server.py L25")
     if not err:
         return token
     else:
@@ -33,16 +32,17 @@ def upload():
     access, err = validate.token(request)
     access = json.loads(access)
     if access["admin"]:
-        if len(request.files)==1:
-            return "excatly 1 file required", 400
+        print("Acess is valid server.py L25")
+        if len(request.files) != 1:
+            return "excatly 1 file required server.py L37", 400
         
         for _, f in request.files.items():
-            err = util.upload(f, fs, channel, access)
+            err = util.upload(f, fs_videos, access)
             if err:
                 return err
         return "success", 200
     else:
-        return "not authorized", 401
+        return "not authorized server.py L45", 401
 
 
 @server.route("/download", methods=["POST"])
