@@ -1,8 +1,9 @@
 import jwt, datetime, os
 from flask import Flask, request
 from flask_mysqldb import MySQL
+import logging
 
-print("started")
+logging.info("Auth server starting ...")
 
 server = Flask(__name__)
 mysql = MySQL(server)
@@ -17,10 +18,12 @@ print(server.config["MYSQL_PORT"])
 
 @server.route("/healthcheck", methods=["GET"])
 def healthcheck():
+    logging.info("auth healthcheck invoked ...")
     return "Server is up and running", 200
 
 @server.route("/login", methods=["POST"])
 def login():
+    logging.info("auth login invoked ...")
     auth = request.authorization
     if not auth:
         return "missing credentials", 401
@@ -45,6 +48,7 @@ def login():
 
 
 def createJWT(username, secret, auth):
+    logging.info("gateway createJWT invoked ...")
     return jwt.encode({
         "username": username,
         "exp": datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(days=1),
@@ -58,6 +62,7 @@ def createJWT(username, secret, auth):
 
 @server.route("/validate", methods=["POST"])
 def validate():
+    logging.info("auth validate invoked ...")
     encoded_jwt = request.headers["Authorization"]
     if not encoded_jwt:
         return "Missing credentials", 401
@@ -75,11 +80,11 @@ def validate():
     
     return decoded_jwt, 200
 
-print("No issues")
 
 if __name__=="__main__":
     try:
         server.run(host="0.0.0.0", port=5000)
-        print("Reached here")
+        logging.info("Auth server deployed !!! ...")
     except Exception as e:
-        print(e)
+        logging.info("Auth server failed to start !!!")
+        logging.info(e)
